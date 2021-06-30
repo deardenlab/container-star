@@ -1,8 +1,8 @@
 FROM ubuntu:20.04
 
-LABEL SOFTWARE_NAME ubuntu 20.04
+LABEL SOFTWARE_NAME STAR 2.7.9a
 LABEL MAINTAINER "Tom Harrop"
-LABEL VERSION "ubuntu 20.04"
+LABEL VERSION "STAR 2.7.9a"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LC_ALL=C
@@ -20,6 +20,26 @@ RUN     . /etc/os-release \
         apt-get update && apt-get upgrade -y --fix-missing
 
 RUN     apt-get update && apt-get install -y  --no-install-recommends \
-            build-essential
+            build-essential \
+            wget \
+            zlib1g-dev
 
-ENTRYPOINT ["/usr/bin/cat /etc/os-release"]
+RUN      wget -O "/star.tar.gz" \
+            --no-check-certificate \
+            https://github.com/alexdobin/STAR/archive/refs/tags/2.7.9a.tar.gz &&\
+        mkdir /star &&\
+        tar -zxf /star.tar.gz \
+            -C /star \
+            --strip-components 1
+
+
+WORKDIR /star/source
+
+RUN     make -j &&\
+        cp STAR /usr/local/bin
+
+WORKDIR /
+
+RUN     rm -rf /star.tar.gz /star
+
+ENTRYPOINT ["/usr/local/bin/STAR"]
